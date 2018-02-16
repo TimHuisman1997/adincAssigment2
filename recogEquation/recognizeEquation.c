@@ -20,7 +20,7 @@
 #include <stdio.h>  /* getchar, printf */
 #include <stdlib.h> /* NULL */
 #include "scanner.c"
-#include "recognizeExp.h"
+#include "recognizeEquation.h"
 
 /* The functions acceptNumber, acceptIdentifier and acceptCharacter have as
  * (first) argument a pointer to an token list; moreover acceptCharacter has as
@@ -63,13 +63,19 @@ int acceptCharacter(List *lp, char c) {
 
 int acceptFactor(List *lp) {
 	if(acceptNumber(lp)){
-		if(acceptIdentifier(lp));
+		if(acceptIdentifier(lp)){
+			if(acceptCharacter(lp, '^')&&acceptNumber(lp));
+		}
 		return 1;
 	}
-	return acceptIdentifier(lp)
-    || ( acceptCharacter(lp,'(')
+	if(acceptIdentifier(lp)){
+		if(acceptCharacter(lp, '^')&&acceptNumber(lp));
+		return 1;
+	}
+	
+	return acceptCharacter(lp,'(')
       && acceptExpression(lp)
-      && acceptCharacter(lp,')')
+      && acceptCharacter(lp,')'
     );
 }
 
@@ -86,6 +92,7 @@ int acceptTerm(List *lp) {
 }
 
 int acceptExpression(List *lp) {
+  if(acceptCharacter(lp, '-'));
   if ( !acceptTerm(lp) ) {
     return 0;
   }
@@ -97,27 +104,35 @@ int acceptExpression(List *lp) {
   return 1;
 }
 
+int acceptEquation(List *lp){
+	if(!acceptExpression(lp)) return 0;
+	while (acceptCharacter(lp, '=')){
+		if (!acceptExpression(lp)) return 0;
+	}
+	return 1;
+}
+
 /* The next function can be used to demonstrate the recognizer.
  */
 
-void recognizeExpressions() {
+void recognizeEquation() {
   char *ar;
   List tl, tl1;
-  printf("give an expression: ");
+  printf("give an equation: ");
   ar = readInput();
   while (ar[0] != '!') {
     tl = tokenList(ar);
-    printf("the token list is ");
+    //printf("the token list is ");
     printList(tl);
     tl1 = tl;
-    if ( acceptExpression(&tl1) && tl1 == NULL ) {
-      printf("this is an expression\n");
+    if ( acceptEquation(&tl1) && tl1 == NULL ) {
+      printf("this is an equation\n");
     } else {
-      printf("this is not an expression\n");
+      printf("this is not an equation\n");
     }
     free(ar);
     freeTokenList(tl);
-    printf("\ngive an expression: ");
+    printf("\ngive an equation: ");
     ar = readInput();
   }
   free(ar);

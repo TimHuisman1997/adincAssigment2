@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
-#include "recognizeExp.c"
+#include "recognizeEquation.c"
 
 
 
 int main (int argc, char *argv[]){
-    recognizeExpressions();
+    recognizeEquation();
     return 0;
 }
