@@ -19,7 +19,7 @@
 
 #include <stdio.h>  /* getchar, printf */
 #include <stdlib.h> /* NULL */
-#include "scanner.h"
+#include "scanner.c"
 #include "recognizeExp.h"
 
 /* The functions acceptNumber, acceptIdentifier and acceptCharacter have as
@@ -62,8 +62,11 @@ int acceptCharacter(List *lp, char c) {
  */
 
 int acceptFactor(List *lp) {
-  return acceptNumber(lp)
-    || acceptIdentifier(lp)
+	if(acceptNumber(lp)){
+		if(acceptIdentifier(lp));
+		return 1;
+	}
+	return acceptIdentifier(lp)
     || ( acceptCharacter(lp,'(')
       && acceptExpression(lp)
       && acceptCharacter(lp,')')
