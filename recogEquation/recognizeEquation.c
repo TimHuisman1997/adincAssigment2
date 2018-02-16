@@ -105,15 +105,21 @@ int acceptExpression(List *lp) {
 }
 
 int acceptEquation(List *lp){
-	if(!acceptExpression(lp)) return 0;
-	while (acceptCharacter(lp, '=')){
-		if (!acceptExpression(lp)) return 0;
-	}
-	return 1;
+	return acceptExpression(lp) &&
+	acceptCharacter(lp, '=') &&
+	acceptExpression(lp);
 }
 
 /* The next function can be used to demonstrate the recognizer.
  */
+
+void varDeg(List *lp){
+	while(lp!=NULL){
+		printf("x");
+		lp=lp->next;
+	}
+	printf("Yea");
+}
 
 void recognizeEquation() {
   char *ar;
@@ -122,11 +128,12 @@ void recognizeEquation() {
   ar = readInput();
   while (ar[0] != '!') {
     tl = tokenList(ar);
-    //printf("the token list is ");
+    printf("the token list is ");
     printList(tl);
     tl1 = tl;
     if ( acceptEquation(&tl1) && tl1 == NULL ) {
       printf("this is an equation\n");
+      varDeg(&tl1);
     } else {
       printf("this is not an equation\n");
     }
