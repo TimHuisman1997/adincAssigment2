@@ -40,8 +40,18 @@ int acceptNumber(List *lp) {
   return 0;
 }
 
-int acceptIdentifier(List *lp) {
+int acceptIdentifier(List *lp, int *var, char *s) {
   if (*lp != NULL && (*lp)->tt == Identifier ) {
+      //printf("%d", *var);
+        if(*var==0){
+            //printf("x");
+            strcpy(s, ((*lp)->t).identifier);
+            *var+=1;
+        }
+        if(strcmp(s, ((*lp)->t).identifier)){
+            //printf("y");
+            *var+=1;
+        }
     *lp = (*lp)->next;
     return 1;
   }
@@ -74,35 +84,36 @@ int countDeg(List *lp, int *deg){
 	return 0;
     }
 }
-
+/*
 void countVar(List *lp, int *var, char *s){
     printf("%d ", *var);
-    if(var<1){
-        printf("x");
-        strcpy(s, ((*lp)->t).identifier);
+    if(*var<1){
+        printf("x ");
+        //strcpy(s, ((*lp)->t).identifier);
         *lp=(*lp)->next;
-        *var++;
-        printf("%d", *var);
+        *var+=1;
+        printf("y ");
+        return;
     }
     if(!strcmp(s, ((*lp)->t).identifier)){
-        *var++;
+        printf("z ");
+        *var+=1;
         *lp=(*lp)->next;
     }
 }
-
+*/
 int acceptTerm(List *lp, int *deg, int *var, char *s) {
 	if(acceptNumber(lp)){
-		if((*lp)->tt==Identifier){
-            countVar(lp, var, s);
+		if(acceptIdentifier(lp, var, s)){
+            printf("l");
 			if(acceptCharacter(lp, '^')){
 				return countDeg(lp, deg);
 			}
+            return 1;
 		}
 		return 1;
 	}
-	if((*lp)->tt==Identifier){
-	    //printf("x");
-        countVar(lp, var, s);
+	if(acceptIdentifier(lp, var, s)){
 		if(acceptCharacter(lp, '^')){
 			return countDeg(lp, deg);
 		}
@@ -186,7 +197,7 @@ void varDeg(List *lp){
 */
 
 void recognizeEquation() {
-  char *ar, s[40];
+  char *ar, s[80];
   int deg=0, var=0;
   List tl, tl1;
   printf("give an equation: ");
@@ -198,13 +209,25 @@ void recognizeEquation() {
     tl1 = tl;
     if ( acceptEquation(&tl1, &deg, &var, s) && tl1 == NULL ) {
       printf("this is an equation");
-      printf("%d\n", var);
+      if(var==1){
+        if(deg==0){
+            printf(" in 1 variable of degree 1\n");
+        } else {
+            printf(" in 1 variable of degree %d\n", deg);
+        }
+      } else {
+        printf(", but not in 1 variable\n");
+      }
+
+      //printf("%d %d\n", deg, var);
       //varDeg(&tl2);
     } else {
       printf("this is not an equation\n");
     }
     free(ar);
     freeTokenList(tl);
+    deg=0;
+    var=0;
     printf("\ngive an equation: ");
     ar = readInput();
   }
