@@ -100,17 +100,56 @@ int acceptEquation(List *lp){
  */
  
 void varDeg(List *lp){
+	int countDeg=0, countVar=0;
 	int n;
+	int tempCount;
+	int arDeg[20];
+	char stVar[20] = {'0'};
 	while(*lp!=NULL){
-		if((*lp->tt==symbol)&&((*lp)->t=='^')){
+		if((*lp)->tt==Symbol&&((*lp)->t).symbol=='^'){
 			*lp=(*lp)->next;
-			n = (*lp)->
-			for(int i; i<count; i++){
-				if(
-				
+			n = ((*lp)->t).number;
+			//printf("%d\n", n);
+			if(n!=0){
+				arDeg[countDeg]=n;
+				countDeg++;
+			//printf("%d\n", count);
+			}
+		}
+		
+		if((*lp)->tt==Identifier){
+			if(countVar!=2){
+				if(stVar[0]=='0'){
+					//printf("x\n");
+					strcpy(stVar, ((*lp)->t).identifier);
+					countVar++;
+					//printf("x\n");
+				} else {
+					if (strcmp(stVar, ((*lp)->t).identifier)){
+						//printf("x\n");
+						countVar++;
+					}
+				}
+			}
+		}		
 		*lp=(*lp)->next;
 	}
-	printf("x\n");
+	
+	tempCount=countDeg;
+	for(int i=0; i<countDeg; i++){
+		for(int j=i+1;j<countDeg; j++){
+			if(arDeg[i]==arDeg[j]){
+				tempCount--;
+			}
+		}
+	}
+	if(countVar==1){
+		countDeg++;
+		printf(" in 1 variable of degree %d\n", countDeg);
+	}else{
+		printf(", but not in 1 variable\n");
+	}
+	
 }
 	
 void recognizeEquation() {
@@ -120,12 +159,12 @@ void recognizeEquation() {
   ar = readInput();
   while (ar[0] != '!') {
     tl = tokenList(ar);
-    printf("the token list is ");
+    //printf("the token list is ");
     printList(tl);
     tl1 = tl;
     tl2 = tl;
     if ( acceptEquation(&tl1) && tl1 == NULL ) {
-      printf("this is an equation\n");
+      printf("this is an equation");
       varDeg(&tl2);
     } else {
       printf("this is not an equation\n");
