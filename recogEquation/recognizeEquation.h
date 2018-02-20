@@ -5,7 +5,7 @@
 #include "scanner.h"
 
 int acceptNumber(List *lp);
-int acceptIdentifier(List *lp);
+int acceptIdentifier(List *lp, int *var, char *s);
 int acceptCharacter(List *lp, char c);
 int acceptExpression(List *lp, int *deg, int *var, char *s);
 int acceptEquation(List *lp, int *deg, int *var, char *s);
