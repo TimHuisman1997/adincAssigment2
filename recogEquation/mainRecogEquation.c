@@ -2,9 +2,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
-#include "recognizeEquation.c"
-
-
+#include "recognizeEquation.h"
+#include "scanner.h"
 
 int main (int argc, char *argv[]){
     recognizeEquation();
