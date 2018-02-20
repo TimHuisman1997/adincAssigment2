@@ -19,8 +19,10 @@
 
 #include <stdio.h>  /* getchar, printf */
 #include <stdlib.h> /* NULL */
-#include "scanner.c"
+#include <string.h>
+#include "scanner.h"
 #include "recognizeEquation.h"
+
 
 /* The functions acceptNumber, acceptIdentifier and acceptCharacter have as
  * (first) argument a pointer to an token list; moreover acceptCharacter has as
@@ -61,72 +63,83 @@ int acceptCharacter(List *lp, char c) {
  * the token list. Otherwise they yield 0 and the pointer remains unchanged.
  */
 
-int acceptTerm(List *lp) {
+int countDeg(List *lp, int *deg){
+  if((*lp)->tt!=Number){
+	return 0;
+  } else {
+	if(((*lp)->t).number>*deg){
+		*deg=((*lp)->t).number;
+		*lp=(*lp)->next;
+		}
+	}
+  return 1;
+}
+
+int acceptTerm(List *lp, int *deg) {
 	if(acceptNumber(lp)){
 		if(acceptIdentifier(lp)){
-			if(acceptCharacter(lp, '^')&&acceptNumber(lp));
+			if(acceptCharacter(lp, '^')){
+				return countDeg(lp, deg);
+			}
 		}
 		return 1;
 	}
 	if(acceptIdentifier(lp)){
-		if(acceptCharacter(lp, '^')&&acceptNumber(lp));
-		return 1;
+		if(acceptCharacter(lp, '^')){
+			return countDeg(lp, deg);
+		}
 	}
 	
 	return 0;
 }
 
 
-int acceptExpression(List *lp) {
+int acceptExpression(List *lp, int *deg) {
   if(acceptCharacter(lp, '-'));
-  if ( !acceptTerm(lp) ) {
+  if ( !acceptTerm(lp, deg) ) {
     return 0;
   }
   while ( acceptCharacter(lp,'+') || acceptCharacter(lp,'-') ) {
-    if ( !acceptTerm(lp) ) {
+    if ( !acceptTerm(lp, deg) ) {
       return 0;
     }
   } /* no + or -, so we reached the end of the expression */
   return 1;
 }
 
-int acceptEquation(List *lp){
-	return acceptExpression(lp) &&
+int acceptEquation(List *lp, int *deg){
+	return acceptExpression(lp, deg) &&
 	acceptCharacter(lp, '=') &&
-	acceptExpression(lp);
+	acceptExpression(lp, deg);
 }
 
 /* The next function can be used to demonstrate the recognizer.
  */
- 
+/* 
 void varDeg(List *lp){
 	int countDeg=0, countVar=0;
 	int n;
 	int tempCount;
 	int arDeg[20];
-	char stVar[20] = {'0'};
+	char stVar[40] = {'0'};
 	while(*lp!=NULL){
 		if((*lp)->tt==Symbol&&((*lp)->t).symbol=='^'){
 			*lp=(*lp)->next;
 			n = ((*lp)->t).number;
 			//printf("%d\n", n);
-			if(n!=0){
+			if(n>0){
 				arDeg[countDeg]=n;
 				countDeg++;
-			//printf("%d\n", count);
 			}
 		}
 		
 		if((*lp)->tt==Identifier){
 			if(countVar!=2){
 				if(stVar[0]=='0'){
-					//printf("x\n");
 					strcpy(stVar, ((*lp)->t).identifier);
 					countVar++;
-					//printf("x\n");
 				} else {
 					if (strcmp(stVar, ((*lp)->t).identifier)){
-						//printf("x\n");
 						countVar++;
 					}
 				}
@@ -151,10 +164,12 @@ void varDeg(List *lp){
 	}
 	
 }
+*/ 
 	
 void recognizeEquation() {
   char *ar;
-  List tl, tl1, tl2;
+  int deg=0;
+  List tl, tl1;
   printf("give an equation: ");
   ar = readInput();
   while (ar[0] != '!') {
@@ -162,10 +177,10 @@ void recognizeEquation() {
     //printf("the token list is ");
     printList(tl);
     tl1 = tl;
-    tl2 = tl;
-    if ( acceptEquation(&tl1) && tl1 == NULL ) {
+    if ( acceptEquation(&tl1, &deg) && tl1 == NULL ) {
       printf("this is an equation");
-      varDeg(&tl2);
+      printf("%d\n", deg);
+      //varDeg(&tl2);
     } else {
       printf("this is not an equation\n");
     }
