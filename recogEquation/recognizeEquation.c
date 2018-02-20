@@ -61,7 +61,7 @@ int acceptCharacter(List *lp, char c) {
  * the token list. Otherwise they yield 0 and the pointer remains unchanged.
  */
 
-int acceptFactor(List *lp) {
+int acceptTerm(List *lp) {
 	if(acceptNumber(lp)){
 		if(acceptIdentifier(lp)){
 			if(acceptCharacter(lp, '^')&&acceptNumber(lp));
@@ -73,23 +73,9 @@ int acceptFactor(List *lp) {
 		return 1;
 	}
 	
-	return acceptCharacter(lp,'(')
-      && acceptExpression(lp)
-      && acceptCharacter(lp,')'
-    );
+	return 0;
 }
 
-int acceptTerm(List *lp) {
-  if ( !acceptFactor(lp) ) {
-    return 0;
-  }
-  while ( acceptCharacter(lp,'*') || acceptCharacter(lp,'/') ) {
-    if ( !acceptFactor(lp) ) {
-      return 0;
-    }
-  }   /* no * or /, so we reached the end of the term */
-  return 1;
-}
 
 int acceptExpression(List *lp) {
   if(acceptCharacter(lp, '-'));
@@ -112,18 +98,24 @@ int acceptEquation(List *lp){
 
 /* The next function can be used to demonstrate the recognizer.
  */
-
+ 
 void varDeg(List *lp){
-	while(lp!=NULL){
-		printf("x");
-		lp=lp->next;
+	int n;
+	while(*lp!=NULL){
+		if((*lp->tt==symbol)&&((*lp)->t=='^')){
+			*lp=(*lp)->next;
+			n = (*lp)->
+			for(int i; i<count; i++){
+				if(
+				
+		*lp=(*lp)->next;
 	}
-	printf("Yea");
+	printf("x\n");
 }
-
+	
 void recognizeEquation() {
   char *ar;
-  List tl, tl1;
+  List tl, tl1, tl2;
   printf("give an equation: ");
   ar = readInput();
   while (ar[0] != '!') {
@@ -131,9 +123,10 @@ void recognizeEquation() {
     printf("the token list is ");
     printList(tl);
     tl1 = tl;
+    tl2 = tl;
     if ( acceptEquation(&tl1) && tl1 == NULL ) {
       printf("this is an equation\n");
-      varDeg(&tl1);
+      varDeg(&tl2);
     } else {
       printf("this is not an equation\n");
     }
