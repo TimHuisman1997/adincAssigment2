@@ -43,6 +43,7 @@ int valueNumber(List *lp, double *wp);
 void printList(List l);
 void freeTokenList(List l);
 void scanExpressions();
+void recognizeEquation();
 
 #endif
 
