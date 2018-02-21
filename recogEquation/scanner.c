@@ -18,7 +18,7 @@
  * Initially, the length of s is MAXINPUT: it is doubled when necessary.
  */
 
-char *readInput() {
+char *readInput(int *sLen) {
   int strLen = MAXINPUT;
   int c = getchar();
   int i = 0;
@@ -35,6 +35,7 @@ char *readInput() {
     c = getchar();
   }
   s[i] = '\0';
+  *sLen=strLen;
   return s;
 }
 
@@ -165,24 +166,5 @@ void freeTokenList(List li) {
   free(li);
 }
 
-/* The next function definition is not in the lecture notes. It can be used
- * to demonstrate the scanner.
- */
 
-void scanExpressions() {
-  char *ar;
-  List li;
-  printf("give an expression: ");
-  ar = readInput();
-  while (ar[0] != '!') {
-    li = tokenList(ar);
-    printList(li);
-    free(ar);
-    freeTokenList(li);
-    printf("\ngive an expression: ");
-    ar = readInput();
-  }
-  free(ar);
-  printf("good bye\n");
-}
 
