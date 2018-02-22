@@ -32,8 +32,48 @@
  * the token list. Otherwise they yield 0 and the pointer remains unchanged.
  */
 
-int acceptNumber(List *lp) {
+void calcAB(double temp, double *arAB, int *plusMin, int *equal, int ab){
+	if(*equal==0){
+		if(*plusMin==0){
+			arAB[ab] = arAB[ab] + temp;
+		} else {
+			arAB[ab] = arAB[ab] - temp;
+		}
+	} else {
+		if(plusMin==0){
+			arAB[ab] = arAB[ab] - temp;
+		} else {
+			arAB[ab] = arAB[ab] + temp;
+		}
+	}
+	*plusMin=0;
+}
+
+void countVar(List *lp, int *var, char *s){
+  if(*var==0){
+    strcpy(s, ((*lp)->t).identifier);
+    *var+=1;
+  }
+  if(strcmp(s, ((*lp)->t).identifier)){
+    *var+=1;
+  }
+}
+
+int countDeg(List *lp, int *deg){
+  if(*lp!=NULL&&(*lp)->tt==Number){
+    if(((*lp)->t).number>*deg){
+		*deg=((*lp)->t).number;
+    }
+    *lp=(*lp)->next;
+	return 1;
+  } else {
+	return 0;
+    }
+}	
+
+int acceptNumber(List *lp, int *temp) {
   if (*lp != NULL && (*lp)->tt == Number) {
+	*temp=((*lp)->t).number;
     *lp = (*lp)->next;
     return 1;
   }
@@ -42,21 +82,17 @@ int acceptNumber(List *lp) {
 
 int acceptIdentifier(List *lp, int *var, char *s) {
   if (*lp != NULL && (*lp)->tt == Identifier ) {
-        if(*var==0){
-            strcpy(s, ((*lp)->t).identifier);
-            *var+=1;
-        }
-        if(strcmp(s, ((*lp)->t).identifier)){
-            *var+=1;
-        }
+	countVar(lp, var, s);
     *lp = (*lp)->next;
     return 1;
   }
   return 0;
 }
 
-int acceptCharacter(List *lp, char c) {
+int acceptCharacter(List *lp, char c, int *plusMin, int *equal) {
   if (*lp != NULL && (*lp)->tt == Symbol && ((*lp)->t).symbol == c ) {
+	if(c=='-') *plusMin=1;
+	if(c=='=') *equal=1;
     *lp = (*lp)->next;
     return 1;
   }
@@ -70,30 +106,25 @@ int acceptCharacter(List *lp, char c) {
  * the token list. Otherwise they yield 0 and the pointer remains unchanged.
  */
 
-int countDeg(List *lp, int *deg){
-  if(*lp!=NULL&&(*lp)->tt==Number){
-    if(((*lp)->t).number>*deg){
-		*deg=((*lp)->t).number;
-    }
-    *lp=(*lp)->next;
-	return 1;
-  } else {
-	return 0;
-    }
-}
 
-int acceptTerm(List *lp, int *deg, int *var, char *s) {
-	if(acceptNumber(lp)){
+
+int acceptTerm(List *lp, int *deg, int *var, char *s, double *arAB, int *plusMin, int *equal) {
+	int temp;
+	if(acceptNumber(lp, &temp)){
+		temp = (double) temp;
 		if(acceptIdentifier(lp, var, s)){
-			if(acceptCharacter(lp, '^')){
+			calcAB(temp, arAB, plusMin, equal, 0);
+			if(acceptCharacter(lp, '^', plusMin, equal)){
 				return countDeg(lp, deg);
 			}
             return 1;
 		}
+		calcAB(temp, arAB, plusMin, equal, 1);
 		return 1;
 	}
 	if(acceptIdentifier(lp, var, s)){
-		if(acceptCharacter(lp, '^')){
+		calcAB((double)1, arAB, plusMin, equal, 0);
+		if(acceptCharacter(lp, '^', plusMin, equal)){
 			return countDeg(lp, deg);
 		}
 		return 1;
@@ -103,29 +134,30 @@ int acceptTerm(List *lp, int *deg, int *var, char *s) {
 }
 
 
-int acceptExpression(List *lp, int *deg, int *var, char *s) {
-  if(acceptCharacter(lp, '-'));
-  if ( !acceptTerm(lp, deg, var, s) ) {
+int acceptExpression(List *lp, int *deg, int *var, char *s, double *arAB, int *plusMin, int *equal) {
+  if(acceptCharacter(lp, '-', plusMin, equal));
+  if ( !acceptTerm(lp, deg, var, s, arAB, plusMin, equal) ) {
     return 0;
   }
-  while ( acceptCharacter(lp,'+') || acceptCharacter(lp,'-') ) {
-    if ( !acceptTerm(lp, deg, var, s) ) {
+  while ( acceptCharacter(lp,'+', plusMin, equal) || acceptCharacter(lp,'-', plusMin, equal) ) {
+    if ( !acceptTerm(lp, deg, var, s, arAB, plusMin, equal) ) {
       return 0;
     }
   } /* no + or -, so we reached the end of the expression */
   return 1;
 }
 
-int acceptEquation(List *lp, int *deg, int *var, char *s){
-	return acceptExpression(lp, deg, var, s) &&
-	acceptCharacter(lp, '=') &&
-	acceptExpression(lp, deg, var, s);
+int acceptEquation(List *lp, int *deg, int *var, char *s, double *arAB, int *plusMin, int *equal){
+	return acceptExpression(lp, deg, var, s, arAB, plusMin, equal) &&
+	acceptCharacter(lp, '=', plusMin, equal) &&
+	acceptExpression(lp, deg, var, s, arAB, plusMin, equal);
 }
 
 
 void recognizeEquation() {
   char *ar;
-  int deg=-1, var=0, sLen;
+  int deg=-1, var=0, sLen, plusMin=0, equal=0;
+  double arAB[2] = {0, 0}; 
   List tl, tl1;
   printf("give an equation: ");
   ar = readInput(&sLen);
@@ -134,13 +166,16 @@ void recognizeEquation() {
     tl = tokenList(ar);
     printList(tl);
     tl1 = tl;
-    if ( acceptEquation(&tl1, &deg, &var, s) && tl1 == NULL ) {
+    if ( acceptEquation(&tl1, &deg, &var, s, arAB, &plusMin, &equal) && tl1 == NULL ) {
       printf("this is an equation");
       if(var==1&&deg==-1){
         deg=1;
       }
       if(var==1){
             printf(" in 1 variable of degree %d\n", deg);
+            if(deg==1){
+				printf("%lf %lf/n", arAB[0], arAB[1]);
+			}
       } else {
         printf(", but not in 1 variable\n");
       }
@@ -148,6 +183,7 @@ void recognizeEquation() {
       printf("this is not an equation\n");
     }
     free(ar);
+    free(s);
     freeTokenList(tl);
     deg=-1;
     var=0;
