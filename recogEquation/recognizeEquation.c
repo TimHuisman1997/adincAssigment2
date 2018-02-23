@@ -40,10 +40,10 @@ void calcAB(double temp, double *arAB, int *plusMin, int *equal, int ab){
 			arAB[ab] = arAB[ab] - temp;
 		}
 	} else {
-		if(plusMin==0){
-			arAB[ab] = arAB[ab] - temp;
+		if(*plusMin==0){
+			arAB[ab] = arAB[ab] + temp*-1;
 		} else {
-			arAB[ab] = arAB[ab] + temp;
+			arAB[ab] = arAB[ab] - temp*-1;
 		}
 	}
 	*plusMin=0;
@@ -157,7 +157,7 @@ int acceptEquation(List *lp, int *deg, int *var, char *s, double *arAB, int *plu
 void recognizeEquation() {
   char *ar;
   int deg=-1, var=0, sLen, plusMin=0, equal=0;
-  double arAB[2] = {0, 0}; 
+  double arAB[2] = {0}; 
   List tl, tl1;
   printf("give an equation: ");
   ar = readInput(&sLen);
@@ -174,7 +174,11 @@ void recognizeEquation() {
       if(var==1){
             printf(" in 1 variable of degree %d\n", deg);
             if(deg==1){
-				printf("%lf %lf/n", arAB[0], arAB[1]);
+				double n = -1*arAB[1]/arAB[0];
+				if((n > -0.0005) && (n < 0.0005)){
+					n = 0;
+				}
+				printf("solution: %.3lf\n", n);
 			}
       } else {
         printf(", but not in 1 variable\n");
@@ -187,6 +191,10 @@ void recognizeEquation() {
     freeTokenList(tl);
     deg=-1;
     var=0;
+    arAB[0]=0;
+    arAB[1]=0;
+    plusMin=0;
+    equal=0;
     printf("\ngive an equation: ");
     ar = readInput(&sLen);
   }
