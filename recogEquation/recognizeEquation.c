@@ -59,11 +59,25 @@ void countVar(List *lp, int *var, char *s){
   }
 }
 
-int countDeg(List *lp, int *deg){
+int countDeg(List *lp, int *deg, double *arAB, int *plusMin, int *equal, int temp){
   if(*lp!=NULL&&(*lp)->tt==Number){
     if(((*lp)->t).number>*deg){
 		*deg=((*lp)->t).number;
-    }
+    }    
+    if(((*lp)->t).number==0){
+		if(temp==0){
+			calcAB((double)1, arAB, plusMin, equal, 1);
+		} else {
+			calcAB((double)temp, arAB, plusMin, equal, 1);
+		}
+	}
+	if(((*lp)->t).number==1){
+        if(temp==0){
+			calcAB((double)1, arAB, plusMin, equal, 0);
+		} else {
+			calcAB((double)temp, arAB, plusMin, equal, 0);
+		}
+	}
     *lp=(*lp)->next;
 	return 1;
   } else {
@@ -106,27 +120,32 @@ int acceptCharacter(List *lp, char c, int *plusMin, int *equal) {
  * the token list. Otherwise they yield 0 and the pointer remains unchanged.
  */
 
-
+void checkDeg(int *deg){
+	if(*deg<1){
+		*deg+=1;
+	}
+}
 
 int acceptTerm(List *lp, int *deg, int *var, char *s, double *arAB, int *plusMin, int *equal) {
-	int temp;
+	int temp=0;
 	if(acceptNumber(lp, &temp)){
-		temp = (double) temp;
 		if(acceptIdentifier(lp, var, s)){
-			calcAB(temp, arAB, plusMin, equal, 0);
 			if(acceptCharacter(lp, '^', plusMin, equal)){
-				return countDeg(lp, deg);
+				return countDeg(lp, deg, arAB, plusMin, equal, temp);
 			}
+			calcAB((double)temp, arAB, plusMin, equal, 0);
+			checkDeg(deg);
             return 1;
 		}
 		calcAB(temp, arAB, plusMin, equal, 1);
 		return 1;
 	}
 	if(acceptIdentifier(lp, var, s)){
-		calcAB((double)1, arAB, plusMin, equal, 0);
 		if(acceptCharacter(lp, '^', plusMin, equal)){
-			return countDeg(lp, deg);
+			return countDeg(lp, deg, arAB, plusMin, equal, temp);
 		}
+		checkDeg(deg);
+		calcAB((double)1, arAB, plusMin, equal, 0);
 		return 1;
 	}
 
@@ -156,7 +175,7 @@ int acceptEquation(List *lp, int *deg, int *var, char *s, double *arAB, int *plu
 
 void recognizeEquation() {
   char *ar;
-  int deg=-1, var=0, sLen, plusMin=0, equal=0;
+  int deg=0, var=0, sLen, plusMin=0, equal=0;
   double arAB[2] = {0}; 
   List tl, tl1;
   printf("give an equation: ");
@@ -168,17 +187,18 @@ void recognizeEquation() {
     tl1 = tl;
     if ( acceptEquation(&tl1, &deg, &var, s, arAB, &plusMin, &equal) && tl1 == NULL ) {
       printf("this is an equation");
-      if(var==1&&deg==-1){
-        deg=1;
-      }
       if(var==1){
             printf(" in 1 variable of degree %d\n", deg);
             if(deg==1){
-				double n = -1*arAB[1]/arAB[0];
-				if((n > -0.0005) && (n < 0.0005)){
-					n = 0;
+				if(arAB[0]!=0){
+					double n = -1*arAB[1]/arAB[0];
+					if((n > -0.0005) && (n < 0.0005)){
+						n = 0;
+					}
+					printf("solution: %.3lf\n", n);
+				} else {
+					printf("not solvable\n");
 				}
-				printf("solution: %.3lf\n", n);
 			}
       } else {
         printf(", but not in 1 variable\n");
@@ -189,7 +209,7 @@ void recognizeEquation() {
     free(ar);
     free(s);
     freeTokenList(tl);
-    deg=-1;
+    deg=0;
     var=0;
     arAB[0]=0;
     arAB[1]=0;
